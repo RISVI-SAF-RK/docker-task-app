@@ -66,9 +66,9 @@ app.post("/api/tasks", async (req, res) => {
     try {
         const { title } = req.body;
 
-        if (!title) {
+        if (!title || typeof title !== "string") {
             return res.status(400).json({
-                message: "Title is required"
+                message: "Title is required and must be a string"
             });
         }
 
@@ -87,6 +87,7 @@ app.post("/api/tasks", async (req, res) => {
         });
     }
 });
+
 // GET one task
 app.get("/api/tasks/:id", async (req, res) => {
     try {
@@ -113,11 +114,24 @@ app.get("/api/tasks/:id", async (req, res) => {
         });
     }
 });
+
 // UPDATE a task
 app.put("/api/tasks/:id", async (req, res) => {
     try {
         const { id } = req.params;
         const { title, completed } = req.body;
+
+        if (!title || typeof title !== "string") {
+            return res.status(400).json({
+                message: "Title is required and must be a string"
+            });
+        }
+
+        if (typeof completed !== "boolean") {
+            return res.status(400).json({
+                message: "Completed must be a boolean"
+            });
+        }
 
         const result = await pool.query(
             `UPDATE tasks
@@ -143,6 +157,7 @@ app.put("/api/tasks/:id", async (req, res) => {
         });
     }
 });
+
 // DELETE a task
 app.delete("/api/tasks/:id", async (req, res) => {
     try {
