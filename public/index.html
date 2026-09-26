@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Task Manager</title>
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 40px auto;
+            padding: 0 20px;
+            background: #f4f4f4;
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .task-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .task-form input {
+            flex: 1;
+            padding: 10px;
+        }
+
+        .task-form button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        .task {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .task.completed {
+            text-decoration: line-through;
+            opacity: 0.6;
+        }
+
+        .task button {
+            margin-left: 5px;
+            cursor: pointer;
+        }
+
+        #message {
+            margin-bottom: 15px;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Task Manager</h1>
+
+    <div id="message">Loading tasks...</div>
+
+    <div class="task-form">
+        <input
+            type="text"
+            id="taskTitle"
+            placeholder="Enter a task"
+        >
+
+        <button onclick="addTask()">Add Task</button>
+    </div>
+
+    <div id="taskList"></div>
+
+    <script>
+        async function loadTasks() {
+            try {
+                const response = await fetch("/api/tasks");
+                const tasks = await response.json();
+
+                displayTasks(tasks);
+                document.getElementById("message").textContent =
+                    `${tasks.length} task(s)`;
+            } catch (error) {
+                document.getElementById("message").textContent =
+                    "Failed to load tasks";
+                console.error(error);
+            }
+        }
+
+        function displayTasks(tasks) {
+            const taskList = document.getElementById("taskList");
+
+            taskList.innerHTML = "";
+
+            tasks.forEach(task => {
+                const taskElement = document.createElement("div");
+
+                taskElement.className =
+                    task.completed ? "task completed" : "task";
+
+                taskElement.innerHTML = `
+                    <span>${task.title}</span>
+
+                    <div>
+                        <button onclick="toggleTask(${task.id}, ${task.completed})">
+                            ${task.completed ? "Undo" : "Complete"}
+                        </button>
+
+                        <button onclick="deleteTask(${task.id})">
+                            Delete
+                        </button>
+                    </div>
+                `;
+
+                taskList.appendChild(taskElement);
+            });
+        }
+
+        async function addTask() {
+            const input = document.getElementById("taskTitle");
+            const title = input.value.trim();
+
+            if (!title) {
+                alert("Please enter a task");
+                return;
+            }
+
+            try {
+                await fetch("/api/tasks", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        title: title
+                    })
+                });
+
+                input.value = "";
+
+                await loadTasks();
+            } catch (error) {
+                console.error(error);
+                alert("Failed to add task");
+            }
+        }
+
+        async function toggleTask(id, currentStatus) {
+            try {
+                const response = await fetch(`/api/tasks/${id}`);
+
+                if (!response.ok) {
+                    throw new Error("Task not found");
+                }
+
+                const task = await response.json();
+
+                await fetch(`/api/tasks/${id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        title: task.title,
+                        completed: !currentStatus
+                    })
+                });
+
+                await loadTasks();
+            } catch (error) {
+                console.error(error);
+                alert("Failed to update task");
+            }
+        }
+
+        async function deleteTask(id) {
+            if (!confirm("Delete this task?")) {
+                return;
+            }
+
+            try {
+                await fetch(`/api/tasks/${id}`, {
+                    method: "DELETE"
+                });
+
+                await loadTasks();
+            } catch (error) {
+                console.error(error);
+                alert("Failed to delete task");
+            }
+        }
+
+        loadTasks();
+    </script>
+
+</body>
+</html>
