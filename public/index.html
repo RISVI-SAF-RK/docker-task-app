@@ -3,203 +3,907 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="A professional Docker-powered task management application"
+    >
+
     <title>Task Manager</title>
 
     <style>
+        :root {
+            --bg: #f5f7fb;
+            --surface: #ffffff;
+            --surface-soft: #f8fafc;
+            --border: #e5e7eb;
+            --text: #111827;
+            --muted: #6b7280;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success: #16a34a;
+            --danger: #dc2626;
+            --shadow: 0 10px 30px rgba(15, 23, 42, 0.08);
+            --radius: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
         body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 40px auto;
-            padding: 0 20px;
-            background: #f4f4f4;
+            min-height: 100vh;
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+            background: var(--bg);
+            color: var(--text);
         }
 
-        h1 {
-            text-align: center;
+        button,
+        input {
+            font: inherit;
         }
 
-        .task-form {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .task-form input {
-            flex: 1;
-            padding: 10px;
-        }
-
-        .task-form button {
-            padding: 10px 20px;
+        button {
             cursor: pointer;
         }
 
-        .task {
-            background: white;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 6px;
+        .app {
+            width: min(100% - 32px, 1000px);
+            margin: 0 auto;
+            padding: 40px 0 60px;
+        }
+
+        /* Header */
+
+        .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 32px;
         }
 
-        .task.completed {
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 46px;
+            height: 46px;
+            display: grid;
+            place-items: center;
+            border-radius: 14px;
+            background: var(--primary);
+            color: white;
+            font-size: 22px;
+            font-weight: 700;
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.25);
+        }
+
+        .brand h1 {
+            font-size: 24px;
+            line-height: 1.2;
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Stats */
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            box-shadow: 0 4px 15px rgba(15, 23, 42, 0.04);
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .stat-value {
+            margin-top: 8px;
+            font-size: 30px;
+            font-weight: 700;
+            letter-spacing: -1px;
+        }
+
+        /* Main panel */
+
+        .panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        /* Add task */
+
+        .task-form {
+            display: flex;
+            gap: 12px;
+            padding: 24px;
+            border-bottom: 1px solid var(--border);
+            background: var(--surface);
+        }
+
+        .input-wrapper {
+            position: relative;
+            flex: 1;
+        }
+
+        .task-input {
+            width: 100%;
+            height: 48px;
+            padding: 0 16px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            outline: none;
+            color: var(--text);
+            background: var(--surface-soft);
+            transition: 0.2s ease;
+        }
+
+        .task-input::placeholder {
+            color: #9ca3af;
+        }
+
+        .task-input:focus {
+            border-color: var(--primary);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+        }
+
+        .add-button {
+            height: 48px;
+            padding: 0 22px;
+            border: none;
+            border-radius: 12px;
+            background: var(--primary);
+            color: white;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .add-button:hover {
+            background: var(--primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .add-button:active {
+            transform: translateY(0);
+        }
+
+        /* Toolbar */
+
+        .toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .filters {
+            display: flex;
+            gap: 6px;
+        }
+
+        .filter-button {
+            padding: 8px 14px;
+            border: none;
+            border-radius: 9px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 14px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .filter-button:hover {
+            background: #f1f5f9;
+            color: var(--text);
+        }
+
+        .filter-button.active {
+            background: #eff6ff;
+            color: var(--primary);
+        }
+
+        .search {
+            width: 220px;
+            height: 38px;
+            padding: 0 12px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            outline: none;
+            background: var(--surface-soft);
+            color: var(--text);
+        }
+
+        .search:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.08);
+        }
+
+        /* Task list */
+
+        .task-list {
+            padding: 12px 24px 24px;
+        }
+
+        .task {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 17px 0;
+            border-bottom: 1px solid #eef0f3;
+        }
+
+        .task:last-child {
+            border-bottom: none;
+        }
+
+        .task-content {
+            display: flex;
+            align-items: center;
+            gap: 13px;
+            min-width: 0;
+        }
+
+        .task-check {
+            width: 22px;
+            height: 22px;
+            flex: 0 0 22px;
+            border: 2px solid #cbd5e1;
+            border-radius: 7px;
+            background: white;
+            display: grid;
+            place-items: center;
+            color: white;
+            font-size: 13px;
+            transition: 0.2s ease;
+        }
+
+        .task-check:hover {
+            border-color: var(--primary);
+        }
+
+        .task.completed .task-check {
+            border-color: var(--success);
+            background: var(--success);
+        }
+
+        .task-title {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-size: 15px;
+        }
+
+        .task.completed .task-title {
+            color: #9ca3af;
             text-decoration: line-through;
-            opacity: 0.6;
         }
 
-        .task button {
-            margin-left: 5px;
-            cursor: pointer;
+        .task-actions {
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
         }
 
-        #message {
-            margin-bottom: 15px;
-            color: #555;
+        .action-button {
+            height: 34px;
+            padding: 0 11px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: white;
+            color: var(--muted);
+            font-size: 13px;
+            font-weight: 600;
+            transition: 0.2s ease;
+        }
+
+        .action-button:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            color: var(--text);
+        }
+
+        .action-button.delete:hover {
+            border-color: #fecaca;
+            background: #fef2f2;
+            color: var(--danger);
+        }
+
+        /* Empty state */
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+
+        .empty-icon {
+            width: 56px;
+            height: 56px;
+            margin: 0 auto 16px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: #eff6ff;
+            color: var(--primary);
+            font-size: 25px;
+        }
+
+        .empty-state h2 {
+            font-size: 18px;
+            margin-bottom: 7px;
+        }
+
+        .empty-state p {
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        /* Loading */
+
+        .loading {
+            text-align: center;
+            color: var(--muted);
+            padding: 40px;
+            font-size: 14px;
+        }
+
+        /* Toast */
+
+        .toast {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            max-width: 340px;
+            padding: 13px 17px;
+            border-radius: 10px;
+            background: #111827;
+            color: white;
+            box-shadow: 0 12px 30px rgba(15, 23, 42, 0.2);
+            font-size: 14px;
+            opacity: 0;
+            transform: translateY(15px);
+            pointer-events: none;
+            transition: 0.25s ease;
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast.error {
+            background: var(--danger);
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        /* Responsive */
+
+        @media (max-width: 700px) {
+            .app {
+                width: min(100% - 20px, 1000px);
+                padding-top: 24px;
+            }
+
+            .header {
+                margin-bottom: 24px;
+            }
+
+            .brand h1 {
+                font-size: 21px;
+            }
+
+            .stats {
+                gap: 10px;
+            }
+
+            .stat-card {
+                padding: 15px;
+            }
+
+            .stat-value {
+                font-size: 24px;
+            }
+
+            .task-form {
+                flex-direction: column;
+                padding: 18px;
+            }
+
+            .add-button {
+                width: 100%;
+            }
+
+            .toolbar {
+                flex-direction: column;
+                align-items: stretch;
+                padding: 16px 18px;
+            }
+
+            .filters {
+                overflow-x: auto;
+            }
+
+            .search {
+                width: 100%;
+            }
+
+            .task-list {
+                padding: 8px 18px 18px;
+            }
+
+            .task {
+                align-items: flex-start;
+            }
+
+            .task-actions {
+                flex-direction: column;
+            }
+
+            .action-button {
+                min-width: 76px;
+            }
+        }
+
+        @media (max-width: 430px) {
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .stat-card {
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            .stat-value {
+                margin-top: 0;
+            }
+
+            .task {
+                gap: 10px;
+            }
+
+            .task-title {
+                white-space: normal;
+                word-break: break-word;
+            }
         }
     </style>
 </head>
 
 <body>
 
-    <h1>Task Manager</h1>
+<div class="app">
 
-    <div id="message">Loading tasks...</div>
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">✓</div>
 
-    <div class="task-form">
-        <input
-            type="text"
-            id="taskTitle"
-            placeholder="Enter a task"
-        >
+            <div>
+                <h1>Task Manager</h1>
+                <p>Stay organized and get things done.</p>
+            </div>
+        </div>
+    </header>
 
-        <button onclick="addTask()">Add Task</button>
-    </div>
+    <section class="stats">
+        <div class="stat-card">
+            <span class="stat-label">Total</span>
+            <span class="stat-value" id="totalCount">0</span>
+        </div>
 
-    <div id="taskList"></div>
+        <div class="stat-card">
+            <span class="stat-label">Active</span>
+            <span class="stat-value" id="activeCount">0</span>
+        </div>
 
-    <script>
-        async function loadTasks() {
-            try {
-                const response = await fetch("/api/tasks");
-                const tasks = await response.json();
+        <div class="stat-card">
+            <span class="stat-label">Completed</span>
+            <span class="stat-value" id="completedCount">0</span>
+        </div>
+    </section>
 
-                displayTasks(tasks);
-                document.getElementById("message").textContent =
-                    `${tasks.length} task(s)`;
-            } catch (error) {
-                document.getElementById("message").textContent =
-                    "Failed to load tasks";
-                console.error(error);
+    <main class="panel">
+
+        <form class="task-form" id="taskForm">
+            <div class="input-wrapper">
+                <input
+                    type="text"
+                    id="taskTitle"
+                    class="task-input"
+                    placeholder="What needs to be done?"
+                    maxlength="255"
+                    autocomplete="off"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="add-button">
+                + Add Task
+            </button>
+        </form>
+
+        <div class="toolbar">
+
+            <div class="filters">
+                <button
+                    type="button"
+                    class="filter-button active"
+                    data-filter="all"
+                >
+                    All
+                </button>
+
+                <button
+                    type="button"
+                    class="filter-button"
+                    data-filter="active"
+                >
+                    Active
+                </button>
+
+                <button
+                    type="button"
+                    class="filter-button"
+                    data-filter="completed"
+                >
+                    Completed
+                </button>
+            </div>
+
+            <input
+                type="search"
+                id="searchInput"
+                class="search"
+                placeholder="Search tasks..."
+                autocomplete="off"
+            >
+
+        </div>
+
+        <div id="taskList" class="task-list">
+            <div class="loading">Loading tasks...</div>
+        </div>
+
+    </main>
+
+</div>
+
+<div id="toast" class="toast"></div>
+
+<script>
+    let allTasks = [];
+    let currentFilter = "all";
+    let searchTerm = "";
+
+    const taskList = document.getElementById("taskList");
+    const taskForm = document.getElementById("taskForm");
+    const taskTitle = document.getElementById("taskTitle");
+    const searchInput = document.getElementById("searchInput");
+    const toast = document.getElementById("toast");
+
+    async function loadTasks() {
+        try {
+            const response = await fetch("/api/tasks");
+
+            if (!response.ok) {
+                throw new Error("Failed to load tasks");
             }
+
+            allTasks = await response.json();
+
+            updateStats();
+            renderTasks();
+
+        } catch (error) {
+            console.error(error);
+
+            taskList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">!</div>
+                    <h2>Unable to load tasks</h2>
+                    <p>Please check the API connection and try again.</p>
+                </div>
+            `;
+
+            showToast("Failed to load tasks", "error");
+        }
+    }
+
+    function updateStats() {
+        const total = allTasks.length;
+        const completed = allTasks.filter(task => task.completed).length;
+        const active = total - completed;
+
+        document.getElementById("totalCount").textContent = total;
+        document.getElementById("activeCount").textContent = active;
+        document.getElementById("completedCount").textContent = completed;
+    }
+
+    function getFilteredTasks() {
+        return allTasks.filter(task => {
+
+            const matchesFilter =
+                currentFilter === "all" ||
+                (currentFilter === "active" && !task.completed) ||
+                (currentFilter === "completed" && task.completed);
+
+            const matchesSearch =
+                task.title
+                    .toLowerCase()
+                    .includes(searchTerm.toLowerCase());
+
+            return matchesFilter && matchesSearch;
+        });
+    }
+
+    function renderTasks() {
+        const tasks = getFilteredTasks();
+
+        if (tasks.length === 0) {
+            let message = "No tasks found.";
+
+            if (allTasks.length === 0) {
+                message = "Create your first task to get started.";
+            } else if (searchTerm) {
+                message = "Try a different search term.";
+            }
+
+            taskList.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-icon">✓</div>
+                    <h2>No tasks here</h2>
+                    <p>${message}</p>
+                </div>
+            `;
+
+            return;
         }
 
-        function displayTasks(tasks) {
-            const taskList = document.getElementById("taskList");
+        taskList.innerHTML = tasks.map(task => `
+            <div class="task ${task.completed ? "completed" : ""}">
 
-            taskList.innerHTML = "";
+                <div class="task-content">
 
-            tasks.forEach(task => {
-                const taskElement = document.createElement("div");
+                    <button
+                        type="button"
+                        class="task-check"
+                        onclick="toggleTask(${task.id})"
+                        aria-label="${task.completed ? "Mark task as active" : "Mark task as completed"}"
+                        title="${task.completed ? "Undo" : "Complete"}"
+                    >
+                        ${task.completed ? "✓" : ""}
+                    </button>
 
-                taskElement.className =
-                    task.completed ? "task completed" : "task";
+                    <span class="task-title">
+                        ${escapeHtml(task.title)}
+                    </span>
 
-                taskElement.innerHTML = `
-                    <span>${task.title}</span>
+                </div>
 
-                    <div>
-                        <button onclick="toggleTask(${task.id}, ${task.completed})">
-                            ${task.completed ? "Undo" : "Complete"}
-                        </button>
+                <div class="task-actions">
 
-                        <button onclick="deleteTask(${task.id})">
-                            Delete
-                        </button>
-                    </div>
-                `;
+                    <button
+                        type="button"
+                        class="action-button"
+                        onclick="toggleTask(${task.id})"
+                    >
+                        ${task.completed ? "Undo" : "Complete"}
+                    </button>
 
-                taskList.appendChild(taskElement);
+                    <button
+                        type="button"
+                        class="action-button delete"
+                        onclick="deleteTask(${task.id})"
+                    >
+                        Delete
+                    </button>
+
+                </div>
+
+            </div>
+        `).join("");
+    }
+
+    async function addTask(event) {
+        event.preventDefault();
+
+        const title = taskTitle.value.trim();
+
+        if (!title) {
+            showToast("Please enter a task title", "error");
+            taskTitle.focus();
+            return;
+        }
+
+        try {
+            const response = await fetch("/api/tasks", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: title
+                })
             });
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || "Failed to add task");
+            }
+
+            taskTitle.value = "";
+
+            await loadTasks();
+
+            showToast("Task added successfully", "success");
+
+            taskTitle.focus();
+
+        } catch (error) {
+            console.error(error);
+            showToast(error.message || "Failed to add task", "error");
+        }
+    }
+
+    async function toggleTask(id) {
+        const task = allTasks.find(item => item.id === id);
+
+        if (!task) {
+            showToast("Task not found", "error");
+            return;
         }
 
-        async function addTask() {
-            const input = document.getElementById("taskTitle");
-            const title = input.value.trim();
+        try {
+            const response = await fetch(`/api/tasks/${id}`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    title: task.title,
+                    completed: !task.completed
+                })
+            });
 
-            if (!title) {
-                alert("Please enter a task");
-                return;
+            if (!response.ok) {
+                throw new Error("Failed to update task");
             }
 
-            try {
-                await fetch("/api/tasks", {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        title: title
-                    })
-                });
+            await loadTasks();
 
-                input.value = "";
+            showToast(
+                task.completed
+                    ? "Task marked as active"
+                    : "Task completed",
+                "success"
+            );
 
-                await loadTasks();
-            } catch (error) {
-                console.error(error);
-                alert("Failed to add task");
-            }
+        } catch (error) {
+            console.error(error);
+            showToast("Failed to update task", "error");
+        }
+    }
+
+    async function deleteTask(id) {
+        const task = allTasks.find(item => item.id === id);
+
+        if (!task) {
+            return;
         }
 
-        async function toggleTask(id, currentStatus) {
-            try {
-                const response = await fetch(`/api/tasks/${id}`);
+        const confirmed = confirm(
+            `Delete "${task.title}"?`
+        );
 
-                if (!response.ok) {
-                    throw new Error("Task not found");
-                }
-
-                const task = await response.json();
-
-                await fetch(`/api/tasks/${id}`, {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        title: task.title,
-                        completed: !currentStatus
-                    })
-                });
-
-                await loadTasks();
-            } catch (error) {
-                console.error(error);
-                alert("Failed to update task");
-            }
+        if (!confirmed) {
+            return;
         }
 
-        async function deleteTask(id) {
-            if (!confirm("Delete this task?")) {
-                return;
+        try {
+            const response = await fetch(`/api/tasks/${id}`, {
+                method: "DELETE"
+            });
+
+            if (!response.ok) {
+                throw new Error("Failed to delete task");
             }
 
-            try {
-                await fetch(`/api/tasks/${id}`, {
-                    method: "DELETE"
-                });
+            await loadTasks();
 
-                await loadTasks();
-            } catch (error) {
-                console.error(error);
-                alert("Failed to delete task");
-            }
+            showToast("Task deleted", "success");
+
+        } catch (error) {
+            console.error(error);
+            showToast("Failed to delete task", "error");
         }
+    }
 
-        loadTasks();
-    </script>
+    function setFilter(filter) {
+        currentFilter = filter;
+
+        document.querySelectorAll(".filter-button").forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.filter === filter
+            );
+        });
+
+        renderTasks();
+    }
+
+    function showToast(message, type = "") {
+        toast.textContent = message;
+        toast.className = `toast ${type} show`;
+
+        clearTimeout(showToast.timeout);
+
+        showToast.timeout = setTimeout(() => {
+            toast.classList.remove("show");
+        }, 2500);
+    }
+
+    function escapeHtml(value) {
+        const div = document.createElement("div");
+        div.textContent = value;
+        return div.innerHTML;
+    }
+
+    taskForm.addEventListener("submit", addTask);
+
+    searchInput.addEventListener("input", event => {
+        searchTerm = event.target.value.trim();
+        renderTasks();
+    });
+
+    document.querySelectorAll(".filter-button").forEach(button => {
+        button.addEventListener("click", () => {
+            setFilter(button.dataset.filter);
+        });
+    });
+
+    loadTasks();
+</script>
 
 </body>
 </html>
