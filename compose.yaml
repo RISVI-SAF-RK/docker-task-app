@@ -1,3 +1,4 @@
+# Task Management App - Docker Compose configuration
 services:
 
   api:
